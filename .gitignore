@@ -1,4 +1,5 @@
 .DS_Store
 _pywrap_tensorflow_internal.so
-keras_flask/lib
-keras_flask/bin
+keras_flask/
+keras-advanced-rest-api/config.pyc
+keras-advanced-rest-api/forms.pyc
