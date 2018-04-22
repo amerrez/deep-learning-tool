@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Main Page</h1>
+    <div><p>Upload data to start <b>Training</b></p></div>
+    {% if task == "show_results" %}
+    	{% if data %}
+    <div>data is cool</div>
+    {% else %}
+    <p>No response with data</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

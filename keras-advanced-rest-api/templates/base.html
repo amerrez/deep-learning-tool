@@ -1,0 +1,28 @@
+<html>
+    <head>
+      <title>Deep Learning Tool</title>
+    </head>
+    <body>
+        <div style="text-align: center;">
+        	<header>
+        		<h2>Deep Learning Tool</h2>
+        	<header>
+        </div>
+        <dev>
+		<a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('login') }}">Login</a>
+    	</dev>  
+    	<hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
