@@ -5,3 +5,4 @@ keras-advanced-rest-api/config.pyc
 keras-advanced-rest-api/forms.pyc
 __pycache__/
 venv/
+*.pyc
