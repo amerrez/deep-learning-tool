@@ -1,13 +1,68 @@
 {% extends "base.html" %}
 
+{% block headerItems %}
+<li class="nav-item active">
+            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/account">Account</a>
+          </li>
+{% endblock %}
+
 {% block content %}
-    <h1>Main Page</h1>
-    <div><p>Upload data to start <b>Training</b></p></div>
-    {% if task == "show_results" %}
-    	{% if data %}
-    <div>data is cool</div>
-    {% else %}
-    <p>No response with data</p>
-        {% endif %}
-    {% endif %}
+    <div>
+        <form method="POST" enctype="multipart/form-data" id="fileUploadForm">
+            <div class="form-group">
+                <label for="exampleFormControlFile1">Upload data to start Training</label>
+                <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1">
+            </div>
+            <button type="submit" id="btnSubmit" class="btn btn-primary mb-2">Submit</button>
+        </form>
+    </div>
+    <div id="result">
+    </div>
+{% endblock %}
+
+
+{% block js_block %}
+    $(function(){
+        $('#btnSubmit').click(function(event) {
+            $('#btnSubmit').html('Submitting&nbsp;&nbsp;&nbsp;<i class="fas fa-spinner fa-spin"/>')
+
+            //stop submit the form, we will post it manually.
+            event.preventDefault();
+
+            // Get form
+            var form = $('#fileUploadForm')[0];
+
+            // Create an FormData object
+            var data = new FormData(form)
+
+            // process the form
+            $.ajax({
+                type: "POST",
+                enctype: 'multipart/form-data',
+                url: "/predict",
+                data: data,
+                processData: false,
+                contentType: false,
+                cache: false,
+            })
+                // using the done promise callback
+                .done(function(data) {
+                    $('#btnSubmit').html('Submit')
+                    var message
+                    if(data.success === false){
+                        message = 'Not able to predict!'
+                    }else{
+                        message = data.predictions.reduce(function(acc, cur){return acc + `<li>Label:${cur.label}&nbsp;&nbsp;---&nbsp;&nbsp;Probability:${cur.probability}</li>`}, '')
+                    }
+
+                $('#result').html(`<div class="alert alert-info" role="alert">${message}</div>`)
+
+                // here we will handle errors and validation messages
+            });
+
+        });
+    });
 {% endblock %}
