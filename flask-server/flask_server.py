@@ -22,8 +22,8 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        flash('Login requested for user {}, remember_me={}'.format(
-            form.username.data, form.remember_me.data))
+#         flash('Login requested for user {}, remember_me={}'.format(
+#             form.username.data, form.remember_me.data))
         return redirect('/data_upload')
     return render_template('login.html', title='Sign In', form=form)
 
@@ -31,8 +31,15 @@ def login():
 def upload():
 	form = UploadForm()
 	if form.validate_on_submit():
-# 		filename = secure_filename(form.file.data.filename)
-# 		form.file.data.save('uploads/' + filename)
+	#saving the file to the disk
+		fileName = form.file.data.filename
+		form.file.data.save('uploads/' + fileName)
+
+# 		sending it to redis would be somethink likke this
+# 			k = str(uuid.uuid4())
+# 			d = {"id": k, "image": base64_encode_image(image)}
+# 			db.rpush(IMAGE_QUEUE, json.dumps(d))		
+
 		return redirect('/index')
 	return render_template('data_upload.html', title='Upload', form=form)
 
@@ -73,6 +80,7 @@ def simple_train():
 		return '''<p> request failed</p>'''	
 		print("Request failed")	
 	
+
 @app.route("/predict", methods=["POST"])
 def predict():
 	# initialize the data dictionary that will be returned from the

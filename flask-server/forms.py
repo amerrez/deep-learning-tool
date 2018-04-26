@@ -12,5 +12,5 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Sign In')
 
 class UploadForm(FlaskForm):
-    file = FileField()
+    file = FileField('Your Image')
     submit = SubmitField('Upload')

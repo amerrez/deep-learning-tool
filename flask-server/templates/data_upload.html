@@ -2,6 +2,9 @@
 
 {% block content %}
 <body>
+<dev>
+<p>Upload your file to classify</p>
+</dev>
 <form method="post" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     {{ form.file }}
