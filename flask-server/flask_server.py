@@ -55,13 +55,11 @@ def login():
 
 @app.route('/data_upload', methods=['GET', 'POST'])
 def upload():
-<<<<<<< Updated upstream
     if request.method == 'POST':
         f = request.files['file']
         f.save(secure_filename(f.filename))
         return 'file uploaded successfully'
 
-=======
 	form = UploadForm()
 	if form.validate_on_submit():
 	#saving the file to the disk
@@ -101,7 +99,6 @@ def simple_train():
 	# ensure the request was sucessful
 	if r["success"]:
 		return '''<p> request suceeded</p>'''
->>>>>>> Stashed changes
 
 @app.route('/train')
 def simple_train():
@@ -141,10 +138,10 @@ def simple_train():
     #     print("Request failed")
 
 	# otherwise, the request failed
-	else:
-		return '''<p> request failed</p>'''	
-		print("Request failed")	
-	
+# 	else:
+# 		return '''<p> request failed</p>'''	
+# 		print("Request failed")	
+# 	
 
 @app.route("/predict", methods=["POST"])
 def predict():
