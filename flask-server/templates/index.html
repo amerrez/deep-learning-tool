@@ -16,6 +16,18 @@
                 <label for="exampleFormControlFile1">Upload data to start Training</label>
                 <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1">
             </div>
+            <dev>
+				<label class="radio-inline">
+					<input type="radio" name="task" value="IMC"> Image classification
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="task" value="IMT"> Image to text
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="task" value="ODT"> Object detection
+				</label>
+			</dev>
+			<p></p>
             <button type="submit" id="btnSubmit" class="btn btn-primary mb-2">Submit</button>
         </form>
     </div>

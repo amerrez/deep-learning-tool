@@ -47,19 +47,61 @@ def account():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        #         flash('Login requested for user {}, remember_me={}'.format(
-        #             form.username.data, form.remember_me.data))
+#         flash('Login requested for user {}, remember_me={}'.format(
+#             form.username.data, form.remember_me.data))
         return redirect('/data_upload')
     return render_template('login.html', title='Sign In', form=form)
 
 
 @app.route('/data_upload', methods=['GET', 'POST'])
 def upload():
+<<<<<<< Updated upstream
     if request.method == 'POST':
         f = request.files['file']
         f.save(secure_filename(f.filename))
         return 'file uploaded successfully'
 
+=======
+	form = UploadForm()
+	if form.validate_on_submit():
+	#saving the file to the disk
+		fileName = form.file.data.filename
+		form.file.data.save('uploads/' + fileName)
+
+# 		sending it to redis would be somethink likke this
+# 			k = str(uuid.uuid4())
+# 			d = {"id": k, "image": base64_encode_image(image)}
+# 			db.rpush(IMAGE_QUEUE, json.dumps(d))		
+
+		return redirect('/index')
+	return render_template('data_upload.html', title='Upload', form=form)
+
+@app.route('/train')	
+def simple_train():
+	# USAGE
+	# python simple_request.py
+
+	# import the necessary packages
+	import requests
+
+	# initialize the Keras REST API endpoint URL along with the input
+	# image path
+	KERAS_REST_API_URL = "http://localhost:5000/predict"
+# 	return '''<p> link http://localhost:5000/predict loaded</p>'''
+	IMAGE_PATH = "jemma.png"
+# 	return '''<p> image path loaded</p>'''
+	# load the input image and construct the payload for the request
+	image = open(IMAGE_PATH, "rb").read()
+	payload = {"image": image}
+# 	return '''<p> image opened and loaded</p>'''
+	# submit the request
+	r = requests.post(KERAS_REST_API_URL, files=payload).json()
+	
+	return '''<p> request Json returned to variable r</p>'''
+	# ensure the request was sucessful
+	if r["success"]:
+		return '''<p> request suceeded</p>'''
+>>>>>>> Stashed changes
 
 @app.route('/train')
 def simple_train():
@@ -98,6 +140,11 @@ def simple_train():
     #     return '''<p> request failed</p>'''
     #     print("Request failed")
 
+	# otherwise, the request failed
+	else:
+		return '''<p> request failed</p>'''	
+		print("Request failed")	
+	
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -113,7 +160,10 @@ def predict():
             image = flask.request.files["image"].read()
             image = Image.open(io.BytesIO(image))
             image = prepare_image(image, (IMAGE_WIDTH, IMAGE_HEIGHT))
-
+            
+            #reading the task choice
+            task = flask.request.form["task"]
+            			
             # ensure our NumPy array is C-contiguous as well,
             # otherwise we won't be able to serialize it
             image = image.copy(order="C")
@@ -121,7 +171,7 @@ def predict():
             # generate an ID for the classification then add the
             # classification ID + image to the queue
             k = str(uuid.uuid4())
-            d = {"id": k, "image": base64_encode_image(image)}
+            d = {"id": k, "image": base64_encode_image(image), "type":task}
             db.rpush(IMAGE_QUEUE, json.dumps(d))
 
             # keep looping until our model server returns the output
