@@ -67,7 +67,11 @@
                     if(data.success === false){
                         message = 'Not able to predict!'
                     }else{
-                        message = data.predictions.reduce(function(acc, cur){return acc + `<li>Label:${cur.label}&nbsp;&nbsp;---&nbsp;&nbsp;Probability:${cur.probability}</li>`}, '')
+                        if(data.type == 'IMC'){
+                            message = data.predictions.reduce(function(acc, cur){return acc + `<li>Label:${cur.label}&nbsp;&nbsp;---&nbsp;&nbsp;Probability:${cur.probability}</li>`}, '')
+                        }else if (data.type == 'IMT'){
+                            message = `<p>${data.result}</p>`
+                        }
                     }
 
                 $('#result').html(`<div class="alert alert-info" role="alert">${message}</div>`)
