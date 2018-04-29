@@ -1,10 +1,5 @@
-from io import StringIO
+from io import BytesIO
 import base64
-
-import numpy as np
-from keras.applications import imagenet_utils
-from keras.preprocessing.image import img_to_array
-
 
 def prepare_image(image, target):
     # if the image mode is not RGB, convert it
@@ -14,7 +9,7 @@ def prepare_image(image, target):
     # resize the input image and preprocess it
     image = image.resize(target)
 
-    buf = StringIO.StringIO()
+    buf = BytesIO()
     image.save(buf, format="PNG")
     image_string = buf.getvalue()
 

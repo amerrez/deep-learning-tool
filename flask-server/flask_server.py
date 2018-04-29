@@ -146,7 +146,7 @@ def predict():
                         data["predictions"] = json.loads(output)
                         data["type"] = 'IMC'
                     elif task == 'IMT':
-                        data["result"] = unicode.replace(unicode.replace(output, '\n', '<br>'),'temp.jpeg', '')
+                        data["result"] = str.replace(str.replace(output, '\n', '<br>'),'temp.jpeg', '')
                         data["type"] = 'IMT'
 
                     # delete the result from the database and break
