@@ -1,4 +1,4 @@
-import StringIO
+from io import StringIO
 import base64
 
 import numpy as np
