@@ -122,12 +122,12 @@ def predict():
 
             # ensure our NumPy array is C-contiguous as well,
             # otherwise we won't be able to serialize it
-            image = image.copy(order="C")
+            # image = image.copy(order="C")
 
             # generate an ID for the classification then add the
             # classification ID + image to the queue
             k = str(uuid.uuid4())
-            d = {"id": k, "image": base64_encode_image(image), "type": task}
+            d = {"id": k, "image": image, "type": task}
             db.rpush(IMAGE_QUEUE, json.dumps(d))
 
             # keep looping until our model server returns the output
@@ -142,7 +142,12 @@ def predict():
                     # add the output predictions to our data
                     # dictionary so we can return it to the client
                     output = output.decode("utf-8")
-                    data["predictions"] = json.loads(output)
+                    if task == 'IMC':
+                        data["predictions"] = json.loads(output)
+                        data["type"] = 'IMC'
+                    elif task == 'IMT':
+                        data["result"] = unicode.replace(unicode.replace(output, '\n', '<br>'),'temp.jpeg', '')
+                        data["type"] = 'IMT'
 
                     # delete the result from the database and break
                     # from the polling loop

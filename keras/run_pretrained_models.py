@@ -1,4 +1,6 @@
 # Common imports
+import subprocess
+
 import numpy as np
 import os
 import sys
@@ -21,9 +23,9 @@ from io import StringIO
 from matplotlib import pyplot as plt
 from PIL import Image
 
-from models.research.object_detection.utils import ops as utils_ops
-from models.research.object_detection.utils import label_map_util
-from models.research.object_detection.utils import visualization_utils as vis_util
+# from models.research.object_detection.utils import ops as utils_ops
+# from models.research.object_detection.utils import label_map_util
+# from models.research.object_detection.utils import visualization_utils as vis_util
 
 
 
@@ -76,17 +78,24 @@ def img2text(img_path):
 # Run from run_keras by passing image
 def img2text_server(img):
     IMG_PATH = 'temp.jpeg'
-    im = Image.fromarray(img)
-    im.save('temp.jpeg')
+    # im = Image.fromarray(img)
+    img.save('temp.jpeg')
     #Get absolute paths
     checkpoint_path, vocab_path, img_path = os.path.abspath(CHECKPOINT_PATH), os.path.abspath(VOCAB_PATH), os.path.abspath(IMG_PATH)
     os.chdir('models/research/im2txt')
-    os.system('bazel-bin/im2txt/run_inference \
-    --checkpoint_path={} \
-    --vocab_file={} \
-    --input_files={}'.format(checkpoint_path, vocab_path, img_path))
-    with open('img_capt_result', 'rb') as file:
-        result = pickle.load(file)
+    # os.system('bazel-bin/im2txt/run_inference \
+    # --checkpoint_path={} \
+    # --vocab_file={} \
+    # --input_files={}'.format(checkpoint_path, vocab_path, img_path))
+
+    batcmd = 'bazel-bin/im2txt/run_inference \
+        --checkpoint_path={} \
+        --vocab_file={} \
+        --input_files={}'.format(checkpoint_path, vocab_path, img_path)
+
+    result = subprocess.check_output(batcmd, shell=True)
+    os.chdir('../../..')
+
     print('Result:{}'.format(result))
     return result
 
@@ -188,10 +197,6 @@ def run_inference_for_single_image(image, graph):
       if 'detection_masks' in output_dict:
         output_dict['detection_masks'] = output_dict['detection_masks'][0]
   return output_dict
-
-def object_detection(img):
-    load_object_detection_model
-
 
 
 if __name__=='__main__':

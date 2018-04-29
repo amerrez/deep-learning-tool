@@ -1,3 +1,4 @@
+import StringIO
 import base64
 
 import numpy as np
@@ -12,12 +13,17 @@ def prepare_image(image, target):
 
     # resize the input image and preprocess it
     image = image.resize(target)
-    image = img_to_array(image)
-    image = np.expand_dims(image, axis=0)
-    image = imagenet_utils.preprocess_input(image)
+
+    buf = StringIO.StringIO()
+    image.save(buf, format="PNG")
+    image_string = buf.getvalue()
+
+    # image = img_to_array(image)
+    # image = np.expand_dims(image, axis=0)
+    # image = imagenet_utils.preprocess_input(image)
 
     # return the processed image
-    return image
+    return base64_encode_image(image_string)
 
 
 def base64_encode_image(a):
