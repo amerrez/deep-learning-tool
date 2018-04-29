@@ -71,17 +71,14 @@ def classify_process():
             q = json.loads(q.decode("utf-8"))
             image = base64_decode_image(q["image"], IMAGE_DTYPE,
                                         (1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANS))
-            #Obtaining task id
-            print (q["type"])
 
             # check to see if the batch list is None
             if batch is None:
-                batch = image
-
+                batch = {"image": image, "type": q["type"]}
             # otherwise, stack the data
             else:
                 batch = np.vstack([batch, image])
-                
+
             # update the list of image IDs
             imageIDs.append(q["id"])
 
@@ -89,23 +86,9 @@ def classify_process():
         if len(imageIDs) > 0:
             # classify the batch
             print("* Batch size: {}".format(batch.shape))
-            preds = {"predictions": [{"label":"result","probability":"0.5"}]}
-#             results = imagenet_utils.decode_predictions(preds)
 
-            # loop over the image IDs and their corresponding set of
-            # results from our model
-#             for (imageID, resultSet) in zip(imageIDs, results):
-                # initialize the list of output predictions
-#                 output = []
 
-                # loop over the results and add them to the list of
-                # output predictions
-#                 for (imagenetID, label, prob) in resultSet:
-#                     r = {"label": label, "probability": float(prob)}
-#                     output.append(r)
-
-                # store the output predictions in the database, using
-                # the image ID as the key so we can fetch the results
+            # write back data to redis
             db.set(q["id"], json.dumps(preds))
 
             # remove the set of images from our queue
