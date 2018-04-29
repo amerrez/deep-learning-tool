@@ -17,7 +17,7 @@ import redis
 
 # initialize constants used to control image spatial dimensions and
 # data type
-from keras.applications import ResNet50, imagenet_utils
+from keras.applications.vgg16 import VGG16
 
 IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
@@ -54,7 +54,7 @@ def classify_process():
     # pre-trained on ImageNet and provided by Keras, but you can
     # substitute in your own networks just as easily)
     print("* Loading model...")
-    model = ResNet50(weights="imagenet")
+    model = VGG16(weights='imagenet', include_top=True)
     print("* Model loaded")
 
     # continually pool for new images to classify
