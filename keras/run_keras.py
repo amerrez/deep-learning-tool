@@ -37,7 +37,7 @@ def base64_decode_image(image, dtype, shape):
     # if this is Python 3, we need the extra step of encoding the
     # serialized NumPy string as a byte object
 
-    image = base64.decodestring(image)
+    image = base64.b64decode(image)
     image = Image.open(io.BytesIO(image))
     # image = img_to_array(image)
     # image = np.expand_dims(image, axis=0)
