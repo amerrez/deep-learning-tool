@@ -25,7 +25,7 @@ BATCH_SIZE = 32
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25
 
-db = redis.StrictRedis(host="localhost", port=6379, db=0)
+db = redis.StrictRedis(host="ec2-34-209-90-235.us-west-2.compute.amazonaws.com", port=6379, db=0)
 model = None
 
 print("* Loading model...")
