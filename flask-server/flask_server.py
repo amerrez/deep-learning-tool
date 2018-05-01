@@ -141,14 +141,19 @@ def predict():
                 if output is not None:
                     # add the output predictions to our data
                     # dictionary so we can return it to the client
-                    output = output.decode("utf-8")
+
                     if task == 'IMC':
+                        output = output.decode("utf-8")
                         data["predictions"] = json.loads(output)
                         data["type"] = 'IMC'
                     elif task == 'IMT':
+                        output = output.decode("utf-8")
                         data["result"] = str.replace(str.replace(output, '\n', '<br>'),'temp.jpeg', '')
                         data["type"] = 'IMT'
-
+                    elif task == 'ODT':
+                        output = base64_encode_image(output)
+                        data["result"] = output
+                        data["type"] = 'ODT'
                     # delete the result from the database and break
                     # from the polling loop
                     db.delete(k)

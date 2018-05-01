@@ -71,6 +71,8 @@
                             message = data.predictions.reduce(function(acc, cur){return acc + `<li>Label:${cur.label}&nbsp;&nbsp;---&nbsp;&nbsp;Probability:${cur.probability}</li>`}, '')
                         }else if (data.type == 'IMT'){
                             message = `<p>${data.result}</p>`
+                        }else if (data.type == 'ODT'){
+                            message = `<img src="data:image/png;base64,${data.result}">`
                         }
                     }
 

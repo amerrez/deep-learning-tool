@@ -12,7 +12,7 @@ from PIL import Image
 from keras.applications import VGG16, imagenet_utils
 from keras.preprocessing.image import img_to_array
 
-from run_pretrained_models import image_classification_server, img2text_server
+from run_pretrained_models import image_classification_server, img2text_server, object_detection
 
 IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
@@ -81,6 +81,11 @@ def classify_process():
             elif type == 'IMT':
                 result = img2text_server(image)
                 db.set(q["id"], result)
+            elif type == 'ODT':
+                res_img_byt_str = object_detection(image)
+                db.set(q["id"], res_img_byt_str)
+                # img = Image.open(io.BytesIO(res_img_byt_str))
+                # img.show()
 
             # write back data to redis
 

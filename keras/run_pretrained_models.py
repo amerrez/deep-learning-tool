@@ -102,11 +102,9 @@ def img2text_server(img):
     return result
 
 def object_detection(img_path):
-    print(os.getcwd())
+    # print(os.getcwd())
     os.chdir('models/research/object_detection')
-    img_string = detect(img_path)
-    img = Image.open(io.BytesIO(img_string))
-    img.show()
+    return detect(img_path)
 
 if __name__=='__main__':
     #image_classification("sample_imgs/dog_sample.jpeg")
