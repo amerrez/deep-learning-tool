@@ -14,6 +14,8 @@ from werkzeug.utils import secure_filename
 from config import Config
 from forms import LoginForm
 from utils import prepare_image, base64_encode_image
+from io import BytesIO
+import base64
 
 app = flask.Flask(__name__)
 app.config.from_object(Config)
@@ -38,9 +40,22 @@ def index():
     return render_template('index.html', title='Amer')
 
 
-@app.route('/account')
-def account():
-    return render_template('account.html', title='Amer')
+@app.route('/faceid', methods=['GET', 'POST'])
+def faceid():
+	if request.method == 'POST':
+		file = request.files['zipfile'].read()
+		#send to redis with new id
+		k = str(uuid.uuid4())
+		fileSerialized = base64.encodestring(file).decode("utf-8")
+		d = {"id": k, "file": fileSerialized}
+		db.rpush(IMAGE_QUEUE, json.dumps(d))
+        
+        # Wait for notification form Keras_server training is done.
+        
+        # tell the user training is done and ask him to try the model by uploading a new photo
+        # return a new page here, or show a form for single photo upload.
+
+	return render_template('faceid.html', title='Amer')
 
 
 @app.route('/login', methods=['GET', 'POST'])

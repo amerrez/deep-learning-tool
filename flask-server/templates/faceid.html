@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block headerItems %}
+    <li class="nav-item">
+        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+    </li>
+    <li class="nav-item active">
+        <a class="nav-link" href="/faceid">Face ID</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<body>
+    <p>Upload at least twenty photos of the same person's face to deep train a Face_ID model to learn the face</p>
+    <div>
+    	<form method="post" enctype="multipart/form-data">
+        <input type="file" class="form-control-file" name="zipfile">	
+        <p></p>
+    	<input type="submit">
+		</form>
+	</div>
+	</body>
+{% endblock %}
