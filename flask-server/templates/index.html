@@ -11,11 +11,13 @@
 
 {% block content %}
     <div>
-        <form method="POST" enctype="multipart/form-data" id="fileUploadForm">
+        <form method="POST" enctype="multipart/form-data" id="fileUploadForm" >
             <div class="form-group">
                 <label for="exampleFormControlFile1">Upload data to start Training</label>
-                <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1">
+                <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1" onchange="readURL(this);">
             </div>
+	        <img id="blah" src="#" alt="your image"/>
+	        <p></p>
             <dev>
 				<label class="radio-inline">
 					<input type="radio" name="task" value="IMC"> Image classification
@@ -30,6 +32,24 @@
 			<p></p>
             <button type="submit" id="btnSubmit" class="btn btn-primary mb-2">Submit</button>
         </form>
+<script type="text/javascript">
+function readURL(input) {
+
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      $('#blah').attr('src', e.target.result);
+    }
+
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+$("#imgInp").change(function() {
+  readURL(this);
+});
+</script>
     </div>
     <div id="result">
     </div>

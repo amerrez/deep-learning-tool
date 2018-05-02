@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block headerItems %}
     <li class="nav-item">
@@ -13,8 +14,8 @@
     <p>Upload at least twenty photos of the same person's face to deep train a Face_ID model to learn the face</p>
     <div>
     	<form method="post" enctype="multipart/form-data">
-        <input type="file" class="form-control-file" name="zipfile">	
-        <p></p>
+        <input type="file" id="imgInp" class="form-control-file" name="zipfile">	
+        <p></p>        
     	<input type="submit">
 		</form>
 	</div>
