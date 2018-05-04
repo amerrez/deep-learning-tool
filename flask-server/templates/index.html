@@ -10,54 +10,79 @@
 {% endblock %}
 
 {% block content %}
-    <div>
-        <form method="POST" enctype="multipart/form-data" id="fileUploadForm" >
-            <div class="form-group">
-                <label for="exampleFormControlFile1">Upload data to start Training</label>
-                <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1" onchange="readURL(this);">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                     <div class="card-header" style="background-color: #9fcdff">
+                        Upload a photo to start training
+                     </div>
+                  <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="fileUploadForm" >
+                        <div class="form-group">
+                            <input type="file" class="form-control-file" name="image" id="ex ampleFormControlFile1" onchange="readURL(this);">
+                        </div>
+                        <p></p>
+                        <div>
+                            <label class="radio-inline" style="margin-right: 10px">
+                                <input type="radio" name="task" value="IMC"> Image classification
+                            </label>
+                            <label class="radio-inline" style="margin-right: 10px">
+                                <input type="radio" name="task" value="IMT"> Image to text
+                            </label>
+                            <label class="radio-inline" style="margin-right: 10px">
+                                <input type="radio" name="task" value="ODT"> Object detection
+                            </label>
+                        </div>
+                        <button style="margin-top: 20px" type="submit" id="btnSubmit" class="btn btn-primary mb-2">Submit</button>
+                    </form>
+                  </div>
+                </div>
             </div>
-	        <img id="blah" src="#" alt="your image"/>
-	        <p></p>
-            <dev>
-				<label class="radio-inline">
-					<input type="radio" name="task" value="IMC"> Image classification
-				</label>
-				<label class="radio-inline">
-					<input type="radio" name="task" value="IMT"> Image to text
-				</label>
-				<label class="radio-inline">
-					<input type="radio" name="task" value="ODT"> Object detection
-				</label>
-			</dev>
-			<p></p>
-            <button type="submit" id="btnSubmit" class="btn btn-primary mb-2">Submit</button>
-        </form>
-<script type="text/javascript">
-function readURL(input) {
-
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-      $('#blah').attr('src', e.target.result);
-    }
-
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-$("#imgInp").change(function() {
-  readURL(this);
-});
-</script>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header" style="background-color: #9fcdff">
+                    Photo Preview
+                    </div>
+                    <div class="card-body">
+                        <img id="blah" style="max-width: 300px; max-height: 300px"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header" style="background-color: #9fcdff">
+                    Result
+                    </div>
+                    <div class="card-body">
+                        <div id="result" />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="result">
-    </div>
-{% endblock %}
+{% endblock %}e
 
 
 {% block js_block %}
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+          $('#blah').attr('src', e.target.result);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
     $(function(){
+        $("#imgInp").change(function() {
+            readURL(this);
+        });
         $('#btnSubmit').click(function(event) {
             $('#btnSubmit').html('Submitting&nbsp;&nbsp;&nbsp;<i class="fas fa-spinner fa-spin"/>')
 
