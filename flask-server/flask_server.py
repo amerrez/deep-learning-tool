@@ -32,6 +32,7 @@ IMAGE_DTYPE = "float32"
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25
 IMAGE_QUEUE = "image_queue"
+FACE_ID_QUEUE = "face_ID_queue"
 
 
 @app.route('/')
@@ -43,12 +44,12 @@ def index():
 @app.route('/faceid', methods=['GET', 'POST'])
 def faceid():
 	if request.method == 'POST':
-		file = request.files['zipfile'].read()
+		file = request.files['zipfile'].read()	
+		fileSerialized = base64.encodestring(file).decode("utf-8")
 		#send to redis with new id
 		k = str(uuid.uuid4())
-		fileSerialized = base64.encodestring(file).decode("utf-8")
 		d = {"id": k, "file": fileSerialized}
-		db.rpush(IMAGE_QUEUE, json.dumps(d))
+		db.rpush(FACE_ID_QUEUE, json.dumps(d))
         
         # Wait for notification form Keras_server training is done.
         
