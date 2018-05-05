@@ -3,7 +3,7 @@ import io
 import json
 import sys
 import time
-import os 
+import os
 
 import numpy as np
 import redis
@@ -36,6 +36,7 @@ model = None
 print("* Loading model...")
 model = VGG16(weights='imagenet', include_top=True)
 print("* Model loaded")
+PATH_TO_SAVE_UNZIPPED_FILES = '/Users/thuanbao/Study/249/test'
 
 
 def base64_decode_image(image, dtype, shape):
@@ -111,10 +112,14 @@ def	face_id():
         for q in queue:
             # deserialize the object and obtain the input image
             q = json.loads(q.decode("utf-8"))
-            zipfile = base64.b64decode(q["file"])
+            zippedFile = base64.b64decode(q["file"])
 
-			# send the zip file to faceidScript
-			os.system('python faceidTrain.py' zipfile)
+            import zipfile
+            zip_ref = zipfile.ZipFile(io.BytesIO(zippedFile), 'r')
+            zip_ref.extractall(PATH_TO_SAVE_UNZIPPED_FILES)
+            zip_ref.close()
+
+            ##TODO: @bao call your script here
 
             # remove the set of images from our queue
             db.ltrim(FACE_ID_QUEUE, 1, -1)
@@ -128,8 +133,9 @@ def	face_id():
 if __name__ == "__main__":
     # load the function used to classify input images in a *separate*
     # thread than the one used for main classification
-    print("* Starting model service...")
-    t = Thread(target=face_id, args=())
-    t.daemon = True
-    t.start()
-    classify_process()
+    # print("* Starting model service...")
+    # t = Thread(target=face_id, args=())
+    # t.daemon = True
+    # t.start()
+    # classify_process()
+    face_id()
