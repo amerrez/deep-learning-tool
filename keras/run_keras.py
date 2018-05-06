@@ -4,6 +4,7 @@ import json
 import sys
 import time
 import os
+import shutil
 
 import numpy as np
 import redis
@@ -15,7 +16,7 @@ from PIL import Image
 from keras.applications import VGG16, imagenet_utils
 from keras.preprocessing.image import img_to_array
 
-# from run_pretrained_models import image_classification_server, img2text_server, object_detection
+from run_pretrained_models import image_classification_server, img2text_server, object_detection
 
 IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
@@ -36,7 +37,7 @@ model = None
 print("* Loading model...")
 model = VGG16(weights='imagenet', include_top=True)
 print("* Model loaded")
-PATH_TO_SAVE_UNZIPPED_FILES = '/Users/thuanbao/Study/249/test'
+PATH_TO_SAVE_UNZIPPED_FILES = '/Users/baopham/Desktop/'
 
 
 def base64_decode_image(image, dtype, shape):
@@ -116,10 +117,28 @@ def	face_id():
 
             import zipfile
             zip_ref = zipfile.ZipFile(io.BytesIO(zippedFile), 'r')
+            names = zip_ref.namelist()
+            #print names
             zip_ref.extractall(PATH_TO_SAVE_UNZIPPED_FILES)
             zip_ref.close()
 
+
             ##TODO: @bao call your script here
+            #create new dirs
+            if not os.path.exists(PATH_TO_SAVE_UNZIPPED_FILES+names[0]+'train'):
+                os.makedirs(PATH_TO_SAVE_UNZIPPED_FILES+names[0]+'train')
+                os.makedirs(PATH_TO_SAVE_UNZIPPED_FILES+names[0]+'val')
+
+            #move files to new train folder
+            for i in range (5, len(names), 2):
+                print names[i]
+                fileName = names[i].replace(names[0],"")
+                shutil.move(PATH_TO_SAVE_UNZIPPED_FILES+names[0]+fileName, PATH_TO_SAVE_UNZIPPED_FILES+names[0]+'train/'+fileName)
+            #move file to new val folder
+            shutil.move(PATH_TO_SAVE_UNZIPPED_FILES+names[0]+names[1].replace(names[0],""), PATH_TO_SAVE_UNZIPPED_FILES+names[0]+'val/'+names[1].replace(names[0],""))
+
+            #start training
+            train_face_id_model(PATH_TO_SAVE_UNZIPPED_FILES+names[0])
 
             # remove the set of images from our queue
             db.ltrim(FACE_ID_QUEUE, 1, -1)
