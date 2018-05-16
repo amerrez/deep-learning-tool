@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="row" style="margin-top: 20px">
-            <div class="col-7">
+            <div class="col">
                 <div class="card">
                     <div class="card-header" style="background-color: #9fcdff">
                         Submitted Models
@@ -43,44 +43,84 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>04/21/2018 - 18:01:21</td>
-                                <td>
-                                    <button type="button" class="btn btn-success btn-sm">Ready</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>04/22/2018 - 12:20:13</td>
-                                <td>
-                                    <button type="button" class="btn btn-light btn-sm">Not Ready</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>04/22/2018 - 12:20:13</td>
-                                <td>
-                                    <button type="button" class="btn btn-light btn-sm">Not Ready</button>
-                                </td>
-                            </tr>
+                            {% for n in queue %}
+                                <tr>
+                                    <td>{{ n.get('id') }}</td>
+                                    <td>{{ n.get('time') }}</td>
+                                    {% if n.get('ready') %}
+                                        <td>
+                                            <button id="{{'btnUpload-' + n.get('id')}}" value="{{ n.get('id') }}">Image Upload</button>
+                                        </td>
+                                    {% else %}
+                                        <td>
+                                            <button type="button" class="btn btn-secondary btn-sm">Not Ready</button>
+                                        </td>
+                                    {% endif %}
+
+                                </tr>
+                            {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <div class="col-5">
+            <form method="POST" enctype="multipart/form-data" id="fileUploadForm" >
+                <input type="file" id="imgupload" name="image" style="display:none"/>
+            </form>
+        </div>
+        <div class="row" style="margin-top: 20px">
+            <div class="col">
                 <div class="card">
                     <div class="card-header" style="background-color: #9fcdff">
                         Result
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info" role="alert">Wrong person!</div>
+                        <div id="result">
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
     </body>
+{% endblock %}
+
+{% block js_block %}
+    $(function(){
+        $('#imgupload').on("change", function(){
+            // Get form
+            var form = $('#fileUploadForm')[0];
+
+            // Create an FormData object
+            var data = new FormData(form)
+
+            // process the form
+            $.ajax({
+                type: "POST",
+                enctype: 'multipart/form-data',
+                url: "/face_predict",
+                data: data,
+                processData: false,
+                contentType: false,
+                cache: false,
+            }).done(function(data) {
+                    $('#btnSubmit').html('Submit')
+                    var message
+                    if(data.success === false){
+                        message = 'Not able to predict!'
+                    }else{
+                        message = data.predictions
+                    }
+
+                $('#result').html(`<div class="alert alert-info" role="alert">${message}</div>`)
+
+                // here we will handle errors and validation messages
+            });
+        });
+        $("[id^=btnUpload]").each(
+            function(){
+                $(this).click(function(){
+                    $('#imgupload').trigger('click');
+                })
+            })
+    });
 {% endblock %}

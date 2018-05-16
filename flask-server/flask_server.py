@@ -1,21 +1,18 @@
+import datetime
+import time
+
+import base64
+import flask
 import io
 import json
 import uuid
-
-import flask
-import time
-
 from PIL import Image
-from flask import render_template, flash, redirect, request
-
-# initialize our Flask application, Redis server, and Keras model
-from werkzeug.utils import secure_filename
-
 from config import Config
+from flask import render_template, redirect, request
 from forms import LoginForm
 from utils import prepare_image, base64_encode_image
-from io import BytesIO
-import base64
+# initialize our Flask application, Redis server, and Keras model
+from werkzeug.utils import secure_filename
 
 app = flask.Flask(__name__)
 app.config.from_object(Config)
@@ -23,6 +20,7 @@ app.config.from_object(Config)
 # db redis
 import redis
 
+# db = redis.StrictRedis(host="localhost", port=6379, db=0, decode_responses=True)
 db = redis.StrictRedis(host="localhost", port=6379, db=0)
 
 IMAGE_WIDTH = 224
@@ -32,7 +30,9 @@ IMAGE_DTYPE = "float32"
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25
 IMAGE_QUEUE = "image_queue"
+FACE_IMAGE_QUEUE = "face_image_queue"
 FACE_ID_QUEUE = "face_ID_queue"
+FACE_ID_WAITING_QUEUE = "face_waiting_ID_queue"
 
 
 @app.route('/')
@@ -43,20 +43,30 @@ def index():
 
 @app.route('/faceid', methods=['GET', 'POST'])
 def faceid():
-	if request.method == 'POST':
-		file = request.files['zipfile'].read()	
-		fileSerialized = base64.encodestring(file).decode("utf-8")
-		#send to redis with new id
-		k = str(uuid.uuid4())
-		d = {"id": k, "file": fileSerialized}
-		db.rpush(FACE_ID_QUEUE, json.dumps(d))
-        
-        # Wait for notification form Keras_server training is done.
-        
-        # tell the user training is done and ask him to try the model by uploading a new photo
-        # return a new page here, or show a form for single photo upload.
+    if request.method == 'POST':
+        file = request.files['zipfile'].read()
+        fileSerialized = base64.encodestring(file).decode("utf-8")
+        # send to redis with new id
+        k = str(uuid.uuid4())
+        d = {"id": k, "file": fileSerialized}
+        db.rpush(FACE_ID_QUEUE, json.dumps(d))
+        db.rpush(FACE_ID_WAITING_QUEUE, json.dumps({'id': k, 'time': time.time(), 'ready': False}))
 
-	return render_template('faceid.html', title='Amer')
+    # Wait for notification form Keras_server training is done.
+
+    # tell the user training is done and ask him to try the model by uploading a new photo
+    # return a new page here, or show a form for single photo upload.
+
+    queue = db.lrange(FACE_ID_WAITING_QUEUE, start=0, end=-1)
+
+    res = []
+    if queue:
+        for el in queue:
+            parsed_dict = json.loads(el)
+            parsed_dict['time'] = datetime.datetime.fromtimestamp(parsed_dict.get('time')).strftime('%Y-%m-%d %H:%M:%S')
+            res.append(parsed_dict)
+
+    return render_template('faceid.html', title='Amer', queue=res)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -118,6 +128,41 @@ def simple_train():
         return '''<p> request suceeded</p>'''
 
 
+@app.route("/face_predict", methods=["POST"])
+def predict_face_id():
+    data = {"success": False}
+    if flask.request.method == "POST":
+        if flask.request.files.get("image"):
+            # read the image in PIL format and prepare it for
+            # classification
+            image = flask.request.files["image"].read()
+            image = Image.open(io.BytesIO(image))
+            image = prepare_image(image, (256, 256))
+
+            k = str(uuid.uuid4())
+            d = {"id": k, "image": image}
+            db.rpush(FACE_IMAGE_QUEUE, json.dumps(d))
+
+            while True:
+                # attempt to grab the output predictions
+                output = db.get(k)
+
+                if output is not None:
+                    data["predictions"] = output
+                    db.delete(k)
+                    break
+
+                # sleep for a small amount to give the model a chance
+                # to classify the input image
+                time.sleep(CLIENT_SLEEP)
+
+            # indicate that the request was a success
+            data["success"] = True
+
+    # return the data dictionary as a JSON response
+    return flask.jsonify(data)
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     # initialize the data dictionary that will be returned from the
@@ -164,7 +209,7 @@ def predict():
                         data["type"] = 'IMC'
                     elif task == 'IMT':
                         output = output.decode("utf-8")
-                        data["result"] = str.replace(str.replace(output, '\n', '<br>'),'temp.jpeg', '')
+                        data["result"] = str.replace(str.replace(output, '\n', '<br>'), 'temp.jpeg', '')
                         data["type"] = 'IMT'
                     elif task == 'ODT':
                         output = base64_encode_image(output)
