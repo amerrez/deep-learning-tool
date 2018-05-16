@@ -7,6 +7,8 @@ import os
 
 import numpy as np
 import redis
+import shutil
+from keras.models import load_model
 from threading import Thread
 import zipfile
 
@@ -16,6 +18,10 @@ from keras.applications import VGG16, imagenet_utils
 from keras.preprocessing.image import img_to_array
 
 # from run_pretrained_models import image_classification_server, img2text_server, object_detection
+import train_new_model
+from run_pretrained_models import image_classification_server, img2text_server, object_detection
+from keras.preprocessing import image
+from keras.applications.vgg16 import preprocess_input
 
 IMAGE_WIDTH = 224
 IMAGE_HEIGHT = 224
@@ -28,6 +34,8 @@ FACE_ID_QUEUE = "face_ID_queue"
 BATCH_SIZE = 32
 SERVER_SLEEP = 0.25
 CLIENT_SLEEP = 0.25
+FACE_IMAGE_QUEUE = "face_image_queue"
+FACE_ID_WAITING_QUEUE = "face_waiting_ID_queue"
 
 # db = redis.StrictRedis(host="ec2-34-209-90-235.us-west-2.compute.amazonaws.com", port=6379, db=0)
 db = redis.StrictRedis(host="localhost", port=6379, db=0)
@@ -36,7 +44,7 @@ model = None
 print("* Loading model...")
 model = VGG16(weights='imagenet', include_top=True)
 print("* Model loaded")
-PATH_TO_SAVE_UNZIPPED_FILES = '/Users/thuanbao/Study/249/test'
+PATH_TO_SAVE_UNZIPPED_FILES = '~/tmp/'
 
 
 def base64_decode_image(image, dtype, shape):
@@ -94,14 +102,91 @@ def classify_process():
 
             # write back data to redis
 
-
             # remove the set of images from our queue
             db.ltrim(IMAGE_QUEUE, 1, -1)
 
             # sleep for a small amount
             time.sleep(SERVER_SLEEP)
 
-def	face_id():
+        # faceid detection
+        queue = db.lrange(FACE_IMAGE_QUEUE, 0, BATCH_SIZE - 1)
+        # loop over the queue
+        for q in queue:
+            # deserialize the object and obtain the input image
+            q = json.loads(q.decode("utf-8"))
+            img = base64_decode_image(q["image"], IMAGE_DTYPE,
+                                      (1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANS))
+
+            model = load_model('transfer_keras_model.h5')
+            # img_path = '/Users/thuanbao/Downloads/test_data/amer.jpg'
+            # img = image.load_img(img_path, target_size=(256, 256))
+            x = image.img_to_array(img)
+            x = np.expand_dims(x, axis=0)
+            x = preprocess_input(x)
+
+            preds = model.predict(x)
+            result = ''
+            for (index, i), x in np.ndenumerate(preds):
+                if i == 0:
+                    result += "<em>'Amer'</em> probability is {} <br>".format(x)
+                elif i == 1:
+                    result += "<em>'Bao'</em> probability is {} <br>".format(x)
+                else:
+                    result += "<em>'Neither of Us'</em> probability is {}".format(x)
+
+            db.set(q["id"], result)
+
+            db.ltrim(FACE_IMAGE_QUEUE, 1, -1)
+
+            # sleep for a small amount
+            time.sleep(SERVER_SLEEP)
+
+
+def image_detection():
+    while True:
+        queue = db.lrange(FACE_IMAGE_QUEUE, 0, BATCH_SIZE - 1)
+
+        # loop over the queue
+        for q in queue:
+            # deserialize the object and obtain the input image
+            q = json.loads(q.decode("utf-8"))
+            img = base64_decode_image(q["image"], IMAGE_DTYPE,
+                                      (1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANS))
+
+            model = load_model('transfer_keras_model.h5')
+            # img_path = '/Users/thuanbao/Downloads/test_data/amer.jpg'
+            # img = image.load_img(img_path, target_size=(256, 256))
+            x = image.img_to_array(img)
+            x = np.expand_dims(x, axis=0)
+            x = preprocess_input(x)
+
+            preds = model.predict(x)
+            result = ''
+            for (index, i), x in np.ndenumerate(preds):
+                if i == 0:
+                    result += "<em>'Amer'</em> probability is {} <br>".format(x)
+                elif i == 1:
+                    result += "<em>'Bao'</em> probability is {} <br>".format(x)
+                else:
+                    result += "<em>'Neither of Us'</em> probability is {}".format(x)
+
+            db.set(q["id"], result)
+
+            db.ltrim(FACE_IMAGE_QUEUE, 1, -1)
+
+            # sleep for a small amount
+            time.sleep(SERVER_SLEEP)
+
+            # for (index, i), x in np.ndenumerate(preds):
+            #     if i == 0:
+            #         print("Amer probability is {}".format(x))
+            #     elif i == 1:
+            #         print("Bao probability is {}".format(x))
+            #     else:
+            #         print("Neither of Us probability is {}".format(x))
+
+
+def face_id():
     # continually pool for new zip file of images to train
     while True:
         # attempt to grab a batch of images from the database, then
@@ -117,15 +202,21 @@ def	face_id():
             import zipfile
             zip_ref = zipfile.ZipFile(io.BytesIO(zippedFile), 'r')
             zip_ref.extractall(PATH_TO_SAVE_UNZIPPED_FILES)
+            names = zip_ref.namelist()
             zip_ref.close()
 
-            ##TODO: @bao call your script here
-
-            # remove the set of images from our queue
+            # Remove request from queue
             db.ltrim(FACE_ID_QUEUE, 1, -1)
 
-            # sleep for a small amount
-            time.sleep(SERVER_SLEEP)
+            # start training
+            train_new_model.train_face_id_model(PATH_TO_SAVE_UNZIPPED_FILES + names[0])
+
+            # write back result if training is done
+            current_ele = db.lpop(FACE_ID_WAITING_QUEUE).decode("utf-8")
+            db.lpush(FACE_ID_WAITING_QUEUE, current_ele.replace('false', 'true'))
+
+        # sleep for a small amount
+        time.sleep(SERVER_SLEEP)
 
 
 # if this is the main thread of execution first load the model and
@@ -137,5 +228,11 @@ if __name__ == "__main__":
     # t = Thread(target=face_id, args=())
     # t.daemon = True
     # t.start()
-    # classify_process()
+    #
+    # t = Thread(target=face_id, args=())
+    # t.daemon = True
+    # t.start()
+    #
     face_id()
+    # image_detection()
+    # classify_process()
