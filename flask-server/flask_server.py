@@ -62,6 +62,7 @@ def faceid():
     res = []
     if queue:
         for el in queue:
+            el = el.decode("utf-8")
             parsed_dict = json.loads(el)
             parsed_dict['time'] = datetime.datetime.fromtimestamp(parsed_dict.get('time')).strftime('%Y-%m-%d %H:%M:%S')
             res.append(parsed_dict)
